@@ -72,3 +72,15 @@ Plugins/**/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# Content Folders
+Content/__ExternalActors__
+Content/__ExternalObjects__
+Content/Characters
+Content/Collections
+Content/Developers
+Content/Input
+Content/LevelPrototyping
+
+.editorconfig
+.vsconfig

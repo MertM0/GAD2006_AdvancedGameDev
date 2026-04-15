@@ -11,7 +11,7 @@ This project is being developed with **Unreal Engine 5** and **C++** for the **G
 - **Avatar Character:** Extends the base character to include features like `Sprinting`, `Stamina Management`, and `Third-Person Camera Controls`.
 
 
-## Controls (Default)
+## Controls
 | Action | Key / Input |
 | :--- | :--- |
 | **Move** | `W` `A` `S` `D` |
