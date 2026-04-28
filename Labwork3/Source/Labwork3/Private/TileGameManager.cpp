@@ -2,11 +2,10 @@
 #include "TilePlayerController.h"
 #include "GameFramework/PlayerInput.h"
 
-ATileGameManager::ATileGameManager() :
+ATileGameManager::ATileGameManager() : 
 	GridSize(100),
-	GridOffset(0, 0, 0.5f),
-	MapExtendsInGrids(25),
-	CurrentTileIndex(0)
+	GridOffset(0,0,0.5f),
+	MapExtendsInGrids(25)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -15,21 +14,18 @@ ATileGameManager::ATileGameManager() :
 	GridSelection = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GridMesh"));
 	GridSelection->SetupAttachment(RootComponent);
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh>
-		PlaneMesh(TEXT("StaticMesh'/Engine/BasicShapes/Plane.Plane'"));
-
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface>
-		GridMaterial(TEXT("Material'/Game/UI/MAT_GridSlot.MAT_GridSlot'"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> PlaneMesh(TEXT("StaticMesh'/Engine/BasicShapes/Plane.Plane'"));
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> GridMaterial(TEXT("Material'/Game/UI/MAT_GridSlot.MAT_GridSlot'"));
 
 	GridSelection->SetStaticMesh(PlaneMesh.Object);
 	GridSelection->SetMaterial(0, GridMaterial.Object);
 	GridSelection->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	TilePreview = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TilePreview"));
-	TilePreview->SetupAttachment(GridSelection);
-	TilePreview->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	TilePreviewMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TilePreview"));
+	TilePreviewMesh->SetupAttachment(GridSelection);
 
-	CurrentTileRotation = FRotator::ZeroRotator;
+	TilePreviewMesh->SetStaticMesh(PlaneMesh.Object);
+	TilePreviewMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void ATileGameManager::BeginPlay()
@@ -40,12 +36,7 @@ void ATileGameManager::BeginPlay()
 	{
 		PlayerController->GameManager = this;
 	}
-
-	if (TileTypes.Num() > 0 && TileTypes[0] != nullptr)
-	{
-		TilePreview->SetStaticMesh(TileTypes[0]->BaseMesh);
-		TilePreview->SetRelativeTransform(TileTypes[0]->InstancedMesh->GetRelativeTransform() * FTransform(CurrentTileRotation));
-	}
+	
 }
 
 void ATileGameManager::Tick(float DeltaTime)
@@ -58,9 +49,9 @@ void ATileGameManager::OnActorInteraction(AActor* HitActor, FVector& Location, b
 	if (TileTypes.Num() == 0) return;
 
 	FVector GridLoc = GridOffset;
-	GridLoc.X += FMath::GridSnap(Location.X, GridSize);
-	GridLoc.Y += FMath::GridSnap(Location.Y, GridSize);
-	GridLoc.Z += Location.Z;
+	GridLoc.X = FMath::GridSnap(Location.X, GridSize);
+	GridLoc.Y = FMath::GridSnap(Location.Y, GridSize);
+	GridLoc.Z = Location.Z;
 
 	UPlayerInput* Input = GWorld->GetFirstPlayerController()->PlayerInput;
 
@@ -77,53 +68,61 @@ void ATileGameManager::OnActorInteraction(AActor* HitActor, FVector& Location, b
 			ATileBase* SelectedTile = TileTypes[CurrentTileIndex];
 			Map[GridX][GridY] = SelectedTile;
 
-			FTransform TileTransform(CurrentTileRotation, GridLoc + GridOffset);
+			FTransform RotMatrix(FRotator(0, TileRotation, 0));
+
+			FTransform TileTransform(GridLoc + GridOffset);
 
 			SelectedTile->InstancedMesh->AddInstance(
-				SelectedTile->InstancedMesh->GetRelativeTransform() * TileTransform,
+				RotMatrix * SelectedTile->InstancedMesh->GetRelativeTransform() * TileTransform,
 				true);
+		}
 
-			UE_LOG(LogTemp, Warning, TEXT("Hit: %s %f, %f, %f"),
-				HitActor ? *HitActor->GetActorLabel() : TEXT("None"),
-				Location.X, Location.Y, Location.Z);
-		}
-	}
-	else if (Input->WasJustPressed(EKeys::RightMouseButton))
-	{
-		CurrentTileRotation.Yaw += 90.0f;
-		if (TileTypes.IsValidIndex(CurrentTileIndex))
-		{
-			TilePreview->SetRelativeTransform(TileTypes[CurrentTileIndex]->InstancedMesh->GetRelativeTransform() * FTransform(CurrentTileRotation));
-		}
+		UE_LOG(LogTemp, Warning, TEXT("Hit: %s - %f,%f,%f"),
+			HitActor ? *HitActor->GetActorLabel() : TEXT("None"),
+			Location.X,
+			Location.Y,
+			Location.Z);
 	}
 	else if (Input->WasJustPressed(EKeys::MouseScrollDown))
 	{
-		CurrentTileIndex = (CurrentTileIndex + 1) % TileTypes.Num();
-
-		if (TileTypes.IsValidIndex(CurrentTileIndex))
-		{
-			TilePreview->SetStaticMesh(TileTypes[CurrentTileIndex]->BaseMesh);
-			TilePreview->SetRelativeTransform(TileTypes[CurrentTileIndex]->InstancedMesh->GetRelativeTransform() * FTransform(CurrentTileRotation));
-		}
+		ChangeCurrentTile(1);
 		UE_LOG(LogTemp, Warning, TEXT("TileType: %s"), *TileTypes[CurrentTileIndex]->GetActorLabel());
 	}
 	else if (Input->WasJustPressed(EKeys::MouseScrollUp))
 	{
-		CurrentTileIndex--;
-		if (CurrentTileIndex < 0)
-		{
-			CurrentTileIndex = TileTypes.Num() - 1;
-		}
-
-		if (TileTypes.IsValidIndex(CurrentTileIndex))
-		{
-			TilePreview->SetStaticMesh(TileTypes[CurrentTileIndex]->BaseMesh);
-			TilePreview->SetRelativeTransform(TileTypes[CurrentTileIndex]->InstancedMesh->GetRelativeTransform() * FTransform(CurrentTileRotation));
-		}
+		ChangeCurrentTile(-1);
 		UE_LOG(LogTemp, Warning, TEXT("TileType: %s"), *TileTypes[CurrentTileIndex]->GetActorLabel());
 	}
-	else
+	else if (Input->WasJustPressed(EKeys::RightMouseButton))
+	{
+		TileRotation = (TileRotation + 90) % 360;
+		ChangeCurrentTile(0);
+	} 
+	else 
 	{
 		GridSelection->SetWorldLocation(GridLoc + GridOffset);
+		ChangeCurrentTile(0);
 	}
+}
+
+void ATileGameManager::ChangeCurrentTile(int ScrollAmount)
+{
+	if (TileTypes.Num() == 0) return;
+
+	if (ScrollAmount > 0)
+	{
+		CurrentTileIndex = (CurrentTileIndex + 1) % TileTypes.Num();
+	}
+	else if (ScrollAmount < 0) 
+	{
+		CurrentTileIndex--;
+		if (CurrentTileIndex < 0) CurrentTileIndex = TileTypes.Num() - 1;
+	}
+
+	TilePreviewMesh->SetStaticMesh(TileTypes[CurrentTileIndex]->BaseMesh);
+
+	FTransform TileRelTransform = TileTypes[CurrentTileIndex]->InstancedMesh->GetRelativeTransform();
+	FTransform TileSelRotTransform = FTransform(FRotator(0.0, TileRotation, 0.0));
+
+	TilePreviewMesh->SetRelativeTransform(TileSelRotTransform * TileRelTransform);
 }

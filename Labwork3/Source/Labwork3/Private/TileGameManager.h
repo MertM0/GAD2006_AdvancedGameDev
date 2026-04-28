@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/PlayerInput.h"
 #include "TileBase.h"
 #include "TileGameManager.generated.h"
 
@@ -11,23 +12,25 @@ UCLASS()
 class ATileGameManager : public AActor
 {
 	GENERATED_BODY()
-
-public:
+	
+public:	
 	ATileGameManager();
 
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* GridSelection;
 
 	UPROPERTY(EditAnywhere)
-	UStaticMeshComponent* TilePreview;
+	UStaticMeshComponent* TilePreviewMesh;
 
 protected:
 	virtual void BeginPlay() override;
 
-public:
+public:	
 	virtual void Tick(float DeltaTime) override;
 
-	void OnActorInteraction(AActor* HitActor, FVector& Location, bool IsPressed);
+	void OnActorInteraction(AActor* Actor, FVector& Location, bool IsPressed);
+
+	void ChangeCurrentTile(int ScrollAmount);
 
 	UPROPERTY(EditAnywhere)
 	int GridSize;
@@ -42,8 +45,7 @@ public:
 	int MapExtendsInGrids;
 
 	int CurrentTileIndex;
-
-	FRotator CurrentTileRotation;
+	int TileRotation;
 
 	ATileBase* Map[MAX_MAP_GRID_SIZE][MAX_MAP_GRID_SIZE];
 };
