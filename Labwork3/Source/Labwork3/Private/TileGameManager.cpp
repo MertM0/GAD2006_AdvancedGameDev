@@ -44,7 +44,7 @@ void ATileGameManager::BeginPlay()
 	if (TileTypes.Num() > 0 && TileTypes[0] != nullptr)
 	{
 		TilePreview->SetStaticMesh(TileTypes[0]->BaseMesh);
-		TilePreview->SetWorldScale3D(TileTypes[0]->InstancedMesh->GetComponentScale());
+		TilePreview->SetRelativeTransform(TileTypes[0]->InstancedMesh->GetRelativeTransform() * FTransform(CurrentTileRotation));
 	}
 }
 
@@ -91,7 +91,10 @@ void ATileGameManager::OnActorInteraction(AActor* HitActor, FVector& Location, b
 	else if (Input->WasJustPressed(EKeys::RightMouseButton))
 	{
 		CurrentTileRotation.Yaw += 90.0f;
-		TilePreview->SetRelativeRotation(CurrentTileRotation);
+		if (TileTypes.IsValidIndex(CurrentTileIndex))
+		{
+			TilePreview->SetRelativeTransform(TileTypes[CurrentTileIndex]->InstancedMesh->GetRelativeTransform() * FTransform(CurrentTileRotation));
+		}
 	}
 	else if (Input->WasJustPressed(EKeys::MouseScrollDown))
 	{
@@ -100,7 +103,7 @@ void ATileGameManager::OnActorInteraction(AActor* HitActor, FVector& Location, b
 		if (TileTypes.IsValidIndex(CurrentTileIndex))
 		{
 			TilePreview->SetStaticMesh(TileTypes[CurrentTileIndex]->BaseMesh);
-			TilePreview->SetWorldScale3D(TileTypes[CurrentTileIndex]->InstancedMesh->GetComponentScale());
+			TilePreview->SetRelativeTransform(TileTypes[CurrentTileIndex]->InstancedMesh->GetRelativeTransform() * FTransform(CurrentTileRotation));
 		}
 		UE_LOG(LogTemp, Warning, TEXT("TileType: %s"), *TileTypes[CurrentTileIndex]->GetActorLabel());
 	}
@@ -115,7 +118,7 @@ void ATileGameManager::OnActorInteraction(AActor* HitActor, FVector& Location, b
 		if (TileTypes.IsValidIndex(CurrentTileIndex))
 		{
 			TilePreview->SetStaticMesh(TileTypes[CurrentTileIndex]->BaseMesh);
-			TilePreview->SetWorldScale3D(TileTypes[CurrentTileIndex]->InstancedMesh->GetComponentScale());
+			TilePreview->SetRelativeTransform(TileTypes[CurrentTileIndex]->InstancedMesh->GetRelativeTransform() * FTransform(CurrentTileRotation));
 		}
 		UE_LOG(LogTemp, Warning, TEXT("TileType: %s"), *TileTypes[CurrentTileIndex]->GetActorLabel());
 	}
