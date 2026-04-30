@@ -73,6 +73,10 @@
 # Cache files for the editor to use
 **/DerivedDataCache/*
 
+.editorconfig
+.vsconfig
+.gitattributes
+
 # Content Folders
 **/Content/__ExternalActors__
 **/Content/__ExternalObjects__
@@ -82,7 +86,13 @@
 **/Content/Input
 **/Content/LevelPrototyping
 
-.editorconfig
-.vsconfig
-.gitattributes
+# Labwork2 Content
+**/Labwork2/Content/Materials
+**/Labwork2/Content/Meshes
+**/Labwork2/Content/UI
 
+# Labwork3 Content
+**/Labwork3/Content/Materials
+**/Labwork3/Content/Textures
+**/Labwork3/Content/Models
+**/Labwork3/Content/UI
