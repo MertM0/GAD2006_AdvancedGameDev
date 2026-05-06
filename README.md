@@ -12,3 +12,6 @@ Custom BaseCharacter and AvatarCharacter.<br>Includes Character Movement, Camera
 
 ### [Labwork 2](./Labwork2/) - 16.04.2026
 Command-Based Game Template.<br>Includes GameGrid generation, GameSlot interactions, and a Command Pattern for unit movement with a Undo/Revert system.
+
+### [Labwork 3](./Labwork3/) - 28.04.2026
+Tile-Placing Game Template.<br>Includes TileGameManager and TileBase setup, tile placing capabilities with rotation and cycling mechanics.
