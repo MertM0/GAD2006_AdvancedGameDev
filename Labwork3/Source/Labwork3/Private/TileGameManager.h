@@ -41,6 +41,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	TArray<ATileBase*> TileTypes;
 
+	TArray<FVector> TileScales;
+
 	UPROPERTY(EditAnywhere)
 	int MapExtendsInGrids;
 

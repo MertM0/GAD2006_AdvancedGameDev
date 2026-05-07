@@ -36,7 +36,34 @@ void ATileGameManager::BeginPlay()
 	{
 		PlayerController->GameManager = this;
 	}
-	
+
+	TileScales.Empty();
+	for (ATileBase* Tile : TileTypes)
+	{
+		if (Tile && Tile->InstancedMesh)
+		{
+			FVector OldScale = Tile->InstancedMesh->GetRelativeScale3D();
+			TileScales.Add(OldScale);
+
+			if (!OldScale.Equals(FVector(1.0f, 1.0f, 1.0f)))
+			{
+				for (int32 i = 0; i < Tile->InstancedMesh->GetInstanceCount(); ++i)
+				{
+					FTransform LocalTransform;
+					Tile->InstancedMesh->GetInstanceTransform(i, LocalTransform, false);
+					LocalTransform.SetScale3D(LocalTransform.GetScale3D() * OldScale);
+					Tile->InstancedMesh->UpdateInstanceTransform(i, LocalTransform, false, false, true);
+				}
+				Tile->InstancedMesh->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
+			}
+		}
+		else
+		{
+			TileScales.Add(FVector(1.0f, 1.0f, 1.0f));
+		}
+	}
+
+	ChangeCurrentTile(0);
 }
 
 void ATileGameManager::Tick(float DeltaTime)
@@ -72,9 +99,13 @@ void ATileGameManager::OnActorInteraction(AActor* HitActor, FVector& Location, b
 
 			FTransform TileTransform(GridLoc + GridOffset);
 
-			SelectedTile->InstancedMesh->AddInstance(
-				RotMatrix * SelectedTile->InstancedMesh->GetRelativeTransform() * TileTransform,
-				true);
+			FTransform InstanceTransform = RotMatrix * SelectedTile->InstancedMesh->GetRelativeTransform() * TileTransform;
+			if (TileScales.IsValidIndex(CurrentTileIndex))
+			{
+				InstanceTransform.SetScale3D(TileScales[CurrentTileIndex]);
+			}
+
+			SelectedTile->InstancedMesh->AddInstance(InstanceTransform, true);
 		}
 
 		UE_LOG(LogTemp, Warning, TEXT("Hit: %s - %f,%f,%f"),
@@ -124,5 +155,11 @@ void ATileGameManager::ChangeCurrentTile(int ScrollAmount)
 	FTransform TileRelTransform = TileTypes[CurrentTileIndex]->InstancedMesh->GetRelativeTransform();
 	FTransform TileSelRotTransform = FTransform(FRotator(0.0, TileRotation, 0.0));
 
-	TilePreviewMesh->SetRelativeTransform(TileSelRotTransform * TileRelTransform);
+	FTransform FinalTransform = TileSelRotTransform * TileRelTransform;
+	if (TileScales.IsValidIndex(CurrentTileIndex))
+	{
+		FinalTransform.SetScale3D(TileScales[CurrentTileIndex]);
+	}
+
+	TilePreviewMesh->SetRelativeTransform(FinalTransform);
 }
