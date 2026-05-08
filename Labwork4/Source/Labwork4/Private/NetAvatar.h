@@ -22,6 +22,19 @@ public:
 
     virtual void BeginPlay() override;
     virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+    UPROPERTY(ReplicatedUsing = OnRep_IsRunning)
+    bool bIsRunning;
+
+    UFUNCTION()
+    void OnRep_IsRunning();
+
+    UFUNCTION(Server, Reliable)
+    void ServerSetRunning(bool bRunning);
+
+    void RunPressed();
+    void RunReleased();
 
 private:
     void MoveForward(float Scale);

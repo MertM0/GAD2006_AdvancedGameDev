@@ -109,5 +109,7 @@ private:
 
     static FSMeshAssetList* GetBodyPartList(EBodyPart part, bool isFemale);
     void UpdateBodyParts();
+
+protected:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };
