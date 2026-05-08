@@ -15,3 +15,6 @@ Command-Based Game Template.<br>Includes GameGrid generation, GameSlot interacti
 
 ### [Labwork 3](./Labwork3/) - 28.04.2026
 Tile-Placing Game Template.<br>Includes TileGameManager and TileBase setup, tile placing capabilities with rotation and cycling mechanics.
+
+### [Labwork 4](./Labwork4/) - 08.05.2026
+Multiplayer Tag Game Template.<br>Includes Multiplayer Host/Join functionality, DataTable-based character customization, and a replicated running.
