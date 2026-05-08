@@ -15,7 +15,8 @@ enum class EBodyPart : uint8
     BP_Hands = 3,
     BP_Legs = 4,
     BP_Beard = 5,
-    BP_COUNT = 6,
+    BP_Eyebrows = 6,
+    BP_COUNT = 7,
 };
 
 USTRUCT(BlueprintType)
@@ -96,6 +97,9 @@ private:
 
     UPROPERTY()
     UStaticMeshComponent* PartEyes;
+
+    UPROPERTY()
+    UStaticMeshComponent* PartEyebrows;
 
     UPROPERTY()
     USkeletalMeshComponent* PartHands;

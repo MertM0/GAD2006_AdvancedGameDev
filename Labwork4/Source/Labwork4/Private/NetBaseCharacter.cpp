@@ -9,7 +9,8 @@ static const TArray<FString> BodyPartNames = {
     TEXT("Chest"),
     TEXT("Hands"),
     TEXT("Legs"),
-    TEXT("Beard")
+    TEXT("Beard"),
+    TEXT("Eyebrows")
 };
 
 ANetBaseCharacter::ANetBaseCharacter()
@@ -36,6 +37,9 @@ ANetBaseCharacter::ANetBaseCharacter()
 
     PartEyes = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Eyes"));
     PartEyes->SetupAttachment(PartFace, FName("headSocket"));
+
+	PartEyebrows = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Eyebrows"));
+	PartEyebrows->SetupAttachment(PartFace, FName("headSocket"));
 
     static ConstructorHelpers::FObjectFinder<UStaticMesh> SK_Eyes(TEXT("StaticMesh'/Game/StylizedModularChar/Meshes/SM_Eyes.SM_Eyes'"));
     PartEyes->SetStaticMesh(SK_Eyes.Object);
@@ -76,11 +80,20 @@ void ANetBaseCharacter::ChangeGender(bool _isFemale)
 void ANetBaseCharacter::UpdateBodyParts()
 {
     ChangeBodyPart(EBodyPart::BP_Face, 0, false);
-    ChangeBodyPart(EBodyPart::BP_Beard, 0, false);
     ChangeBodyPart(EBodyPart::BP_Chest, 0, false);
     ChangeBodyPart(EBodyPart::BP_Hair, 0, false);
     ChangeBodyPart(EBodyPart::BP_Hands, 0, false);
     ChangeBodyPart(EBodyPart::BP_Legs, 0, false);
+	ChangeBodyPart(EBodyPart::BP_Eyebrows, 0, false);
+
+    if (PartSelection.isFemale)
+    {
+		PartBeard->SetStaticMesh(nullptr);
+    }
+    else
+    {
+        ChangeBodyPart(EBodyPart::BP_Beard, 0, false);
+    }
 }
 
 FSMeshAssetList* ANetBaseCharacter::GetBodyPartList(EBodyPart part, bool isFemale)
@@ -91,6 +104,8 @@ FSMeshAssetList* ANetBaseCharacter::GetBodyPartList(EBodyPart part, bool isFemal
 
 void ANetBaseCharacter::ChangeBodyPart(EBodyPart index, int value, bool DirectSet)
 {
+	if (index == EBodyPart::BP_Beard && PartSelection.isFemale) return;
+
     FSMeshAssetList* List = GetBodyPartList(index, PartSelection.isFemale);
     if (List == nullptr) return;
 
@@ -119,6 +134,7 @@ void ANetBaseCharacter::ChangeBodyPart(EBodyPart index, int value, bool DirectSe
     case EBodyPart::BP_Hair: PartHair->SetStaticMesh(List->ListStatic[CurrentIndex]); break;
     case EBodyPart::BP_Hands: PartHands->SetSkeletalMeshAsset(List->ListSkeletal[CurrentIndex]); break;
     case EBodyPart::BP_Legs: PartLegs->SetSkeletalMeshAsset(List->ListSkeletal[CurrentIndex]); break;
+    case EBodyPart::BP_Eyebrows: PartEyebrows->SetStaticMesh(List->ListStatic[CurrentIndex]); break;
     }
 }
 
